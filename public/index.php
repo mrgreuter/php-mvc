@@ -23,7 +23,8 @@ set_exception_handler('Core\Error::exceptionHandler');
 /**
  * Routing
  */
-$router = new Core\Router();
+$model = new Core\Model();
+$router = new Core\Router($model);
 
 // Add the routes
 $router->add(array('home' => 'getHome'));

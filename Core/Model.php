@@ -10,7 +10,9 @@ use App\Config;
  *
  * PHP version 7.0
  */
-abstract class Model
+ class Model
 {
-    
+    public function getHome() {
+        return json_encode(array('msg' => 'home endpoint accessed'));
+    }
 }

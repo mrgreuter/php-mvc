@@ -14,8 +14,13 @@ class Router
      * Associative array of endpoints
      * @var array
      */
-    protected $endpoints = [];
+    protected $endpoints;
+    protected $model;
 
+
+    public function __construct($model) {
+        $this->model = $model;
+    }
     /**
      * Add endpoint
      *
@@ -25,7 +30,7 @@ class Router
      */
     public function add($endpoint)
     {
-        $this->endpoints[] = $endpoint;
+        $this->endpoints = $endpoint;
     }
 
     /**
@@ -46,11 +51,11 @@ class Router
      *
      * @return boolean  true if a match found, false otherwise
      */
-    public function match($url)
+    public function getAPIMethod($url)
     {
         foreach ($this->endpoints as $endpointName => $endpointFunction) {
             if (preg_match("/$endpointName/", "/$url/")) {
-                return true;
+                return $endpointFunction;
             }
         }
 
@@ -68,9 +73,15 @@ class Router
     public function dispatch($url)
     {
         $url = $this->removeQueryStringVariables($url);
-        var_dump($url);
-        if ($this->match($url)) {
-            echo "endpoint valid";
+        $methodName = $this->getAPIMethod($url);
+
+        if ( $methodName ) {
+            if(is_callable(array($this->model, $methodName))){
+                echo $this->model->$methodName();
+            }else{
+                throw new \Exception('error while executing model method');
+            }
+
         }
     }
 
