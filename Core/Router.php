@@ -11,40 +11,21 @@ class Router
 {
 
     /**
-     * Associative array of routes (the routing table)
+     * Associative array of endpoints
      * @var array
      */
-    protected $routes = [];
+    protected $endpoints = [];
 
     /**
-     * Parameters from the matched route
-     * @var array
-     */
-    protected $params = [];
-
-    /**
-     * Add a route to the routing table
+     * Add endpoint
      *
-     * @param string $route  The route URL
-     * @param array  $params Parameters (controller, action, etc.)
+     * @param string $endpoint  The endpoint URL
      *
      * @return void
      */
-    public function add($route, $params = [])
+    public function add($endpoint)
     {
-        // Convert the route to a regular expression: escape forward slashes
-        $route = preg_replace('/\//', '\\/', $route);
-
-        // Convert variables e.g. {controller}
-        $route = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z-]+)', $route);
-
-        // Convert variables with custom regular expressions e.g. {id:\d+}
-        $route = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $route);
-
-        // Add start and end delimiters, and case insensitive flag
-        $route = '/^' . $route . '$/i';
-
-        $this->routes[$route] = $params;
+        $this->endpoints[] = $endpoint;
     }
 
     /**
@@ -52,9 +33,9 @@ class Router
      *
      * @return array
      */
-    public function getRoutes()
+    public function getEndpoints()
     {
-        return $this->routes;
+        return $this->endpoints;
     }
 
     /**
@@ -67,31 +48,13 @@ class Router
      */
     public function match($url)
     {
-        foreach ($this->routes as $route => $params) {
-            if (preg_match($route, $url, $matches)) {
-                // Get named capture group values
-                foreach ($matches as $key => $match) {
-                    if (is_string($key)) {
-                        $params[$key] = $match;
-                    }
-                }
-
-                $this->params = $params;
+        foreach ($this->endpoints as $endpointName => $endpointFunction) {
+            if (preg_match("/$endpointName/", "/$url/")) {
                 return true;
             }
         }
 
         return false;
-    }
-
-    /**
-     * Get the currently matched parameters
-     *
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->params;
     }
 
     /**
@@ -105,29 +68,9 @@ class Router
     public function dispatch($url)
     {
         $url = $this->removeQueryStringVariables($url);
-
+        var_dump($url);
         if ($this->match($url)) {
-            $controller = $this->params['controller'];
-            $controller = $this->convertToStudlyCaps($controller);
-            $controller = $this->getNamespace() . $controller;
-
-            if (class_exists($controller)) {
-                $controller_object = new $controller($this->params);
-
-                $action = $this->params['action'];
-                $action = $this->convertToCamelCase($action);
-
-                if (preg_match('/action$/i', $action) == 0) {
-                    $controller_object->$action();
-
-                } else {
-                    throw new \Exception("Method $action in controller $controller cannot be called directly - remove the Action suffix to call this method");
-                }
-            } else {
-                throw new \Exception("Controller class $controller not found");
-            }
-        } else {
-            throw new \Exception('No route matched.', 404);
+            echo "endpoint valid";
         }
     }
 
